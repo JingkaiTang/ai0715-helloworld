@@ -8,7 +8,7 @@ import java.util.Scanner;
 /**
  * 多轮对话示例
  */
-public class MultiTurnDialogue {
+public class MultiTurnConversation {
 
     public static void main(String[] args) {
         OpenAIClient client = Env.getClient();
