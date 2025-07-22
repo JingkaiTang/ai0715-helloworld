@@ -7,10 +7,12 @@ import com.openai.models.chat.completions.ChatCompletionMessage;
 import com.openai.models.chat.completions.ChatCompletionMessageToolCall;
 import com.openai.models.chat.completions.ChatCompletionToolMessageParam;
 import com.t7kai.ai.agent.tools.Tool;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 public class Agent {
 
     private static final String SYSTEM_PROMPT = """
@@ -75,7 +77,7 @@ public class Agent {
                 .map(functionClass -> {
                     Object result = function.arguments(functionClass).execute();
                     if (debug) {
-                        // log.info("Calling function: {}, result: {}", function.name(), result);
+                        log.info("Calling function: {}, result: {}", function.name(), result);
                     }
                     return result;
                 })
