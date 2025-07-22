@@ -1,16 +1,16 @@
 package com.t7kai.ai.agent;
 
 import com.openai.client.OpenAIClient;
+import com.openai.core.JsonValue;
 import com.openai.models.chat.completions.ChatCompletionCreateParams;
 import com.openai.models.chat.completions.ChatCompletionMessage;
 import com.openai.models.chat.completions.ChatCompletionMessageToolCall;
 import com.openai.models.chat.completions.ChatCompletionToolMessageParam;
 import com.t7kai.ai.agent.tools.Tool;
-import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
+import java.util.Map;
 
-@Slf4j
 public class Agent {
 
     private static final String SYSTEM_PROMPT = """
@@ -28,7 +28,8 @@ public class Agent {
         this.tools = tools;
         this.createParamsBuilder = ChatCompletionCreateParams.builder()
                 .model(model)
-                .addSystemMessage(SYSTEM_PROMPT);
+                .addSystemMessage(SYSTEM_PROMPT)
+                .additionalBodyProperties(Map.of("enable_thinking", JsonValue.from(false)));
         this.tools.forEach(this.createParamsBuilder::addTool);
         this.debug = debug;
     }
@@ -74,7 +75,7 @@ public class Agent {
                 .map(functionClass -> {
                     Object result = function.arguments(functionClass).execute();
                     if (debug) {
-                        log.info("Calling function: {}, result: {}", function.name(), result);
+                        // log.info("Calling function: {}, result: {}", function.name(), result);
                     }
                     return result;
                 })

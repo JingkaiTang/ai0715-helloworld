@@ -1,6 +1,7 @@
 package com.t7kai.ai;
 
 import com.openai.client.OpenAIClient;
+import com.openai.client.okhttp.OpenAIOkHttpClient;
 import com.t7kai.ai.agent.Agent;
 import com.t7kai.ai.agent.tools.Compare;
 import com.t7kai.ai.agent.tools.GetTime;
@@ -11,7 +12,7 @@ import java.util.Scanner;
 public class TinyAgent {
 
     public static void main(String[] args) {
-        OpenAIClient client = Env.getClient();
+        OpenAIClient client = OpenAIOkHttpClient.fromEnv();
         Agent agent = new Agent(client, "Qwen/Qwen3-32B", List.of(Compare.class, GetTime.class), true);
         try (Scanner scanner = new Scanner(System.in)) {
             printUserMessage();

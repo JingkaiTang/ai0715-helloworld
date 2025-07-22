@@ -1,8 +1,11 @@
 package com.t7kai.ai;
 
 import com.openai.client.OpenAIClient;
+import com.openai.client.okhttp.OpenAIOkHttpClient;
+import com.openai.core.JsonValue;
 import com.openai.models.chat.completions.ChatCompletionCreateParams;
 
+import java.util.Map;
 import java.util.Scanner;
 
 /**
@@ -11,10 +14,11 @@ import java.util.Scanner;
 public class MultiTurnConversation {
 
     public static void main(String[] args) {
-        OpenAIClient client = Env.getClient();
+        OpenAIClient client = OpenAIOkHttpClient.fromEnv();
         ChatCompletionCreateParams.Builder createParamsBuilder = ChatCompletionCreateParams.builder()
                 .model("Qwen/Qwen3-8B")
-                .addSystemMessage("你是一个友好的助手。");
+                .addSystemMessage("你是一个友好的助手。")
+                .additionalBodyProperties(Map.of("enable_thinking", JsonValue.from(false)));
         String initialAssistantMessage = "你好！请问有什么我可以帮助你的吗？";
         createParamsBuilder.addAssistantMessage(initialAssistantMessage);
         printAssistantMessage(initialAssistantMessage);
