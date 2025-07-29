@@ -22,7 +22,9 @@ public class Agent {
 
     private final OpenAIClient client;
     private final List<Class<? extends Tool>> tools;
+    // 使用ChatCompletionCreateParams.Builder来构建对话上下文 也作为Agent的memory部分
     private final ChatCompletionCreateParams.Builder createParamsBuilder;
+    // debug模式开关
     private final boolean debug;
 
     public Agent(OpenAIClient client, String model, List<Class<? extends Tool>> tools, boolean debug) {
@@ -31,24 +33,29 @@ public class Agent {
         this.createParamsBuilder = ChatCompletionCreateParams.builder()
                 .model(model)
                 .addSystemMessage(SYSTEM_PROMPT)
+                // 关闭思考模式
                 .additionalBodyProperties(Map.of("enable_thinking", JsonValue.from(false)));
         this.tools.forEach(this.createParamsBuilder::addTool);
         this.debug = debug;
     }
 
     public String complete(String message) {
+        // 将用户消息添加到对话上下文中
         createParamsBuilder.addUserMessage(message);
+        // 调用OpenAI API获取助手回复
         ChatCompletionMessage completionMessage = client.chat()
                 .completions()
                 .create(createParamsBuilder.build())
                 .choices()
                 .getFirst()
                 .message();
+        // 如果助手回复中包含工具调用，则处理工具调用
         String response = completionMessage.content().orElse("No response");
         if (completionMessage.toolCalls().isPresent()) {
             createParamsBuilder.addAssistantMessage(response);
             completionMessage.toolCalls()
                     .ifPresent(toolCalls -> {
+                        // 遍历所有工具调用
                         for (ChatCompletionMessageToolCall toolCall : toolCalls) {
                             Object result = callFunction(toolCall.function());
                             createParamsBuilder.addMessage(ChatCompletionToolMessageParam.builder()
@@ -57,6 +64,7 @@ public class Agent {
                                     .build());
                         }
                     });
+            // 再次调用API获取最终回复
             response = client.chat()
                     .completions()
                     .create(createParamsBuilder.build())
@@ -66,6 +74,7 @@ public class Agent {
                     .findFirst()
                     .orElse("No response");
         }
+        // 将助手的回复添加到对话上下文中
         createParamsBuilder.addAssistantMessage(response);
         return response;
     }
@@ -75,6 +84,7 @@ public class Agent {
                 .filter(tool -> tool.getSimpleName().equals(function.name()))
                 .findFirst()
                 .map(functionClass -> {
+                    // 调用工具
                     Object result = function.arguments(functionClass).execute();
                     if (debug) {
                         log.info("Calling function: {}, result: {}", function.name(), result);
